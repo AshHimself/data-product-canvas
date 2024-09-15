@@ -1,0 +1,215 @@
+<html>
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
+    <style>
+        .editable {
+            cursor: text;
+        }
+        .slideout-menu {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+        .slideout-menu.open {
+            transform: translateX(0);
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="max-w-7xl mx-auto p-4">
+        <div id="content" class="bg-gray-200 border-2 border-gray-800">
+            <div class="grid grid-cols-4 gap-4 p-4">
+                <div class="col-span-3 border-2 border-gray-800 p-2">
+                    <h1 id="data-product-name" class="text-2xl font-bold text-left editable" contenteditable="true">DATA PRODUCT NAME</h1>
+                </div>
+                <div class="col-span-1 border-2 border-gray-800 p-2">
+                    <h1 id="domain" class="text-2xl font-bold text-left editable" contenteditable="true">DOMAIN</h1>
+                </div>
+            </div>
+            <div class="grid grid-cols-4 gap-4 p-4">
+                <div class="col-span-1 bg-gray-100 p-4 border-2 border-gray-800">
+                    <h2 class="text-lg font-bold">PROBLEM STATEMENT</h2>
+                    <div id="problem-statement" class="text-gray-600 mt-2 editable" contenteditable="true">Articulates the primary issue or challenge the data product aims to solve, ensuring all stakeholders have a shared understanding.</div>
+                </div>
+                <div class="col-span-1 bg-gray-100 p-4 border-2 border-gray-800">
+                    <h2 class="text-lg font-bold">EXPECTED OUTCOME</h2>
+                    <div id="expected-outcome" class="text-gray-600 mt-2 editable" contenteditable="true">Desired business results or changes the data product should drive.</div>
+                </div>
+                <div class="col-span-1 bg-gray-300 p-4 border-2 border-gray-800">
+                    <h2 class="text-lg font-bold">DECISIONS / ACTIONS</h2>
+                    <div id="decisions-actions" class="text-gray-600 mt-2 editable" contenteditable="true">Outlines the key decisions or actions the data product is designed to support, ensuring alignment with business objectives.</div>
+                </div>
+                <div class="col-span-1 bg-gray-100 p-4 border-2 border-gray-800">
+                    <h2 class="text-lg font-bold">CONSUMERS</h2>
+                    <div id="consumers" class="text-gray-600 mt-2 editable" contenteditable="true">Target audience, such as business users or technical teams, ensuring the product is tailored to their needs and pain points.</div>
+                </div>
+            </div>
+            <div class="grid grid-cols-4 gap-4 p-4">
+                <div class="col-span-1 bg-gray-100 p-4 border-2 border-gray-800">
+                    <h2 class="text-lg font-bold">DATA</h2>
+                    <div id="data" class="text-gray-600 mt-2 editable" contenteditable="true">Data sources required to build the product, whether known systems or conceptual data categories.</div>
+                </div>
+                <div class="col-span-1 bg-gray-100 p-4 border-2 border-gray-800">
+                    <h2 class="text-lg font-bold">METRICS</h2>
+                    <div id="metrics" class="text-gray-600 mt-2 editable" contenteditable="true">Measurable indicators that will be tracked to assess the product’s success and ensure it meets its intended objectives.</div>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 p-4 border-t-2 border-gray-800">
+                <div class="col-span-1 bg-gray-100 p-4 border-2 border-gray-800">
+                    <h2 class="text-lg font-bold">COST</h2>
+                    <div id="cost" class="text-gray-600 mt-2 editable" contenteditable="true">Provides an estimate of the costs associated with developing, deploying, and maintaining the data product, offering transparency to stakeholders.</div>
+                </div>
+                <div class="col-span-1 bg-gray-100 p-4 border-2 border-gray-800">
+                    <h2 class="text-lg font-bold">BENEFITS</h2>
+                    <div id="benefits" class="text-gray-600 mt-2 editable" contenteditable="true">Highlights the specific business improvements or value the product will deliver, directly addressing the problem statement.</div>
+                </div>
+            </div>
+        </div>
+        <div class="fixed top-0 left-0 h-full bg-gray-800 text-white slideout-menu" id="slideout-menu">
+            <div class="p-4">
+                <button onclick="toggleMenu()" class="text-white text-2xl"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-4">
+                <button onclick="downloadPDF()" class="bg-blue-500 text-white px-4 py-2 rounded w-full mb-2">Download as PDF</button>
+                <button onclick="saveAsYAML()" class="bg-yellow-500 text-white px-4 py-2 rounded w-full mb-2">Save as YAML</button>
+                <button onclick="importYAML()" class="bg-purple-500 text-white px-4 py-2 rounded w-full mb-2">Import YAML</button>
+                <input type="file" id="yamlFileInput" class="hidden" accept=".yaml, .yml" onchange="handleFileSelect(event)">
+            </div>
+        </div>
+        <button onclick="toggleMenu()" class="fixed top-4 left-4 bg-gray-800 text-white p-2 rounded"><i class="fas fa-bars"></i></button>
+    </div>
+
+    <div id="toast" class="toast">Saved!</div>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('slideout-menu');
+            menu.classList.toggle('open');
+        }
+
+        function downloadPDF() {
+            const element = document.getElementById('content');
+            html2pdf(element, {
+                margin: [0.5, 0.5, 0.5, 0.5],
+                filename: 'data_product.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 1 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+            });
+        }
+
+        function saveToLocalStorage() {
+            const content = {
+                dataProductName: document.getElementById('data-product-name').innerHTML,
+                domain: document.getElementById('domain').innerHTML,
+                problemStatement: document.getElementById('problem-statement').innerHTML,
+                expectedOutcome: document.getElementById('expected-outcome').innerHTML,
+                decisionsActions: document.getElementById('decisions-actions').innerHTML,
+                consumers: document.getElementById('consumers').innerHTML,
+                data: document.getElementById('data').innerHTML,
+                metrics: document.getElementById('metrics').innerHTML,
+                cost: document.getElementById('cost').innerHTML,
+                benefits: document.getElementById('benefits').innerHTML
+            };
+            localStorage.setItem('dataProductContent', JSON.stringify(content));
+            showToast();
+        }
+
+        function saveAsYAML() {
+            const content = {
+                dataProductName: document.getElementById('data-product-name').innerHTML,
+                domain: document.getElementById('domain').innerHTML,
+                problemStatement: document.getElementById('problem-statement').innerHTML,
+                expectedOutcome: document.getElementById('expected-outcome').innerHTML,
+                decisionsActions: document.getElementById('decisions-actions').innerHTML,
+                consumers: document.getElementById('consumers').innerHTML,
+                data: document.getElementById('data').innerHTML,
+                metrics: document.getElementById('metrics').innerHTML,
+                cost: document.getElementById('cost').innerHTML,
+                benefits: document.getElementById('benefits').innerHTML
+            };
+            const yamlContent = jsyaml.dump(content);
+            const blob = new Blob([yamlContent], { type: 'text/yaml' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'data_product.yaml';
+            link.click();
+        }
+
+        function importYAML() {
+            document.getElementById('yamlFileInput').click();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const yamlContent = e.target.result;
+                    const content = jsyaml.load(yamlContent);
+                    document.getElementById('data-product-name').innerHTML = content.dataProductName;
+                    document.getElementById('domain').innerHTML = content.domain;
+                    document.getElementById('problem-statement').innerHTML = content.problemStatement;
+                    document.getElementById('expected-outcome').innerHTML = content.expectedOutcome;
+                    document.getElementById('decisions-actions').innerHTML = content.decisionsActions;
+                    document.getElementById('consumers').innerHTML = content.consumers;
+                    document.getElementById('data').innerHTML = content.data;
+                    document.getElementById('metrics').innerHTML = content.metrics;
+                    document.getElementById('cost').innerHTML = content.cost;
+                    document.getElementById('benefits').innerHTML = content.benefits;
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function loadFromLocalStorage() {
+            const savedContent = localStorage.getItem('dataProductContent');
+            if (savedContent) {
+                const content = JSON.parse(savedContent);
+                document.getElementById('data-product-name').innerHTML = content.dataProductName;
+                document.getElementById('domain').innerHTML = content.domain;
+                document.getElementById('problem-statement').innerHTML = content.problemStatement;
+                document.getElementById('expected-outcome').innerHTML = content.expectedOutcome;
+                document.getElementById('decisions-actions').innerHTML = content.decisionsActions;
+                document.getElementById('consumers').innerHTML = content.consumers;
+                document.getElementById('data').innerHTML = content.data;
+                document.getElementById('metrics').innerHTML = content.metrics;
+                document.getElementById('cost').innerHTML = content.cost;
+                document.getElementById('benefits').innerHTML = content.benefits;
+            }
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        document.querySelectorAll('.editable').forEach(element => {
+            element.addEventListener('focusout', saveToLocalStorage);
+        });
+
+        window.onload = () => {
+            loadFromLocalStorage();
+        };
+    </script>
+</body>
+</html>
